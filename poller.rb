@@ -1,39 +1,80 @@
-require 'paint'
-require 'httparty'
+load 'setup.rb'
 
+# You need to create a file called secrets.rb in the root directory
+# with a constant called WEBHOOK_URL which corresponds to the 
+# Webhook URL for your slack workspace
 load 'secrets.rb'
 
-def msg(message, color=:red)
-  puts Paint[message, color]
+class Manufacturer
+  attr_reader :code, :name
+
+  def initialize(code, name)
+    @code = code
+    @name = name
+  end
 end
 
-# gigabyte 3070 $779.00
-CODE_BY_MANUFACTURER = {
-  gigabyte: 183101,
-  evga: 183500,
-}
+class CanadaComputersPoller
+  attr_reader :notifier
 
-MANUFACTURER_BY_CODE = CODE_BY_MANUFACTURER.invert
+  CODE_BY_MANUFACTURER = {
+    gigabyte: 183101,
+    evga: 183500,
+  }
 
-codes = CODE_BY_MANUFACTURER.values
+  MANUFACTURER_BY_CODE = CODE_BY_MANUFACTURER.invert
 
-def notify_available!
-  payload='{"text": "OMG"}'
-  msg("AVAILABLE!", :green)
-  resp = HTTParty.post(WEBHOOK_URL, body: payload)
-  puts resp
+  def initialize
+    @notifier = SlackNotifier.new
+  end
+
+  def poll
+    start!
+
+    codes.each(&-> (c) { process_code(c) })
+
+    finish!
+  end
+
+  private
+  
+  def process_code(code)
+    Alert.info "Fetching #{MANUFACTURER_BY_CODE[code]}"
+    response = CanadaComputersResponse.new(get(build_url(code)))
+
+    Alert.info "Responded with code #{response.code}"
+
+    response.stock_available? ? notify_available!(code) : Alert.warn('Unavailable')
+  end
+
+  def start!
+    notifier.message!("\n\n\n🚨 #{time}: Beginning polling!")
+  end
+
+  def finish!
+    notifier.flush_and_send_queue!
+    notifier.message!("\n😴 Finished polling")
+  end
+
+  def time
+    Time.now.strftime("%I:%M %p")
+  end
+
+  def get(url)
+    HTTParty.get(url)
+  end
+
+  def codes
+    CODE_BY_MANUFACTURER.values
+  end
+
+  def build_url(code)
+    "https://www.canadacomputers.com/product_info.php?ajaxstock=true&itemid=#{code}"
+  end
+
+  def notify_available!(code)
+    notifier.enqueue_messages!("‼️ It's available!* manufacturer: #{MANUFACTURER_BY_CODE[code]}")
+  end
 end
 
-# Canada Computers URL template
-codes.each do |code|
-  msg "Getting #{MANUFACTURER_BY_CODE[code]}", :yellow
-  url = "https://www.canadacomputers.com/product_info.php?ajaxstock=true&itemid=#{code}"
-  msg url
-  response = HTTParty.get(url)
-
-  msg "Responded with code #{response.code}"
-
-  body = JSON.parse(response.body)
-  body['avail'] == 1 ? msg('Unavailable') : notify_available!
-  puts "\n"
-end
+CanadaComputersPoller.new.poll
