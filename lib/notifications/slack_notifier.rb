@@ -9,6 +9,6 @@ class SlackNotifier < BaseNotifier
   def build_message_from_queue
     return "Nothing for now..." if @messages.empty?
 
-    @messages.join
+    @messages.join + "\n<#{SLACK_USER_ID}>"
   end
 end

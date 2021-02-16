@@ -14,6 +14,8 @@ class CanadaComputersResponse
   end
 
   def stock_available?
-    body['avail'] != 0
+    # avail seems to be in store quantity
+    # avail2 is online quantity
+    body['avail'] != 0 || body['avail2'] != 'NO AVAILABLE'
   end
 end

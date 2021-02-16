@@ -1,22 +1,5 @@
 load 'setup.rb'
 
-class Manufacturer
-  attr_reader :code, :name, :price
-  def initialize(code, name, price)
-    @code = code
-    @name = name
-    @price = price
-  end
-
-  def url
-    "https://www.canadacomputers.com/product_info.php?ajaxstock=true&itemid=#{code}"
-  end
-
-  def link_to_buy
-    "https://www.canadacomputers.com/product_info.php?cPath=43_557_559&item_id=#{code}"
-  end
-end
-
 class CanadaComputersPoller
   attr_reader :notifier
 
@@ -26,6 +9,8 @@ class CanadaComputersPoller
     Manufacturer.new(183636, 'ASUS', '$749'),
     Manufacturer.new(183638, 'ASUS TUF', '$799'),
     Manufacturer.new(183208, 'MSI', '$819'),
+    # Test manufacturer, this is probably in stock
+    # Manufacturer.new(139783, 'Test manufacturer', '$10000')
   ]
 
   def initialize
@@ -45,12 +30,20 @@ class CanadaComputersPoller
   def process_code(manufacturer)
     code = manufacturer.code
     url = manufacturer.url
+
     Alert.info "Fetching #{manufacturer.name}"
     response = CanadaComputersResponse.new(get(url))
 
     Alert.info "Responded with code #{response.code}"
 
-    response.stock_available? ? notify_available!(manufacturer) : Alert.warn('Unavailable')
+    response.stock_available? ?
+      notify_available!(manufacturer) { |link| "‼️ *#{code}: It's available locally!* link: #{link}\n" } :
+      Alert.warn('Unavailable by API')
+
+    scraper = CanadaComputersScraper.new(code)
+    scraper.in_stock_by_scraping? ?
+      notify_available!(manufacturer) { |link| "‼️ *#{code}: It's available somewhere!* link: #{link}\n" } :
+      Alert.warn('Unavailable by scraping')
   end
 
   def start!
@@ -72,7 +65,7 @@ class CanadaComputersPoller
 
   def notify_available!(manufacturer)
     slack_link = "<#{manufacturer.link_to_buy}|#{manufacturer.name}>"
-    message = "‼️ *It's available!* link: #{slack_link}\n"
+    message = yield(slack_link)
     notifier.enqueue_messages!(message)
   end
 end
