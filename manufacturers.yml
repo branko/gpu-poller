@@ -1,0 +1,26 @@
+-
+  - 183101
+  - Gigabyte
+  - 779
+-
+  - 183500
+  - EVGA
+  - 789
+-
+  - 183636
+  - ASUS
+  - 749
+-
+  - 183638
+  - ASUS TUF
+  - 799
+-
+  - 183208
+  - MSI
+  - 819
+# This manufacturer is likely to be in stock
+# so we use it for testing
+# -
+#   - 139783
+#   - DEBUG manufacturer
+#   - 10000

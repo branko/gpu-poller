@@ -3,6 +3,7 @@
 # Webhook URL for your slack workspace
 load 'secrets.rb'
 
+require 'yaml'
 require 'paint'
 require 'httparty'
 require './lib/notifications/base_notifier.rb'

@@ -1,26 +1,19 @@
 load 'setup.rb'
 
 class CanadaComputersPoller
-  attr_reader :notifier
-
-  MANUFACTURERS = [
-    Manufacturer.new(183101, 'Gigabyte', '$779'),
-    Manufacturer.new(183500, 'EVGA', '$789'),
-    Manufacturer.new(183636, 'ASUS', '$749'),
-    Manufacturer.new(183638, 'ASUS TUF', '$799'),
-    Manufacturer.new(183208, 'MSI', '$819'),
-    # Test manufacturer, this is probably in stock
-    # Manufacturer.new(139783, 'Test manufacturer', '$10000')
-  ]
+  attr_reader :notifier, :manufacturers
 
   def initialize
     @notifier = SlackNotifier.new
+    @manufacturers = YAML.load(File.read("manufacturers.yml")).map do |m|
+      Manufacturer.new(*m)
+    end
   end
 
   def poll
     start!
 
-    MANUFACTURERS.each(&-> (m) { process_code(m) })
+    manufacturers.each(&-> (m) { process_code(m) })
 
     finish!
   end
