@@ -5,15 +5,6 @@ load 'setup.rb'
 # Webhook URL for your slack workspace
 load 'secrets.rb'
 
-class Manufacturer
-  attr_reader :code, :name
-
-  def initialize(code, name)
-    @code = code
-    @name = name
-  end
-end
-
 class CanadaComputersPoller
   attr_reader :notifier
 
