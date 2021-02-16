@@ -1,9 +1,8 @@
 class SlackNotifier < BaseNotifier
   def message!(message)
-    payload = {text: message}.to_s
-    HTTParty.post(WEBHOOK_URL, body: payload)
-  rescue
-    puts "Something went wrong..."
+    payload = JSON.generate({ text: message })
+    res = HTTParty.post(WEBHOOK_URL, body: payload)
+    puts res
   end
 
   private

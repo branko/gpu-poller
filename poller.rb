@@ -1,19 +1,27 @@
 load 'setup.rb'
 
-# You need to create a file called secrets.rb in the root directory
-# with a constant called WEBHOOK_URL which corresponds to the 
-# Webhook URL for your slack workspace
-load 'secrets.rb'
+class Manufacturer
+  attr_reader :code, :name, :link, :price
+  def initialize(code, name, link, price)
+    @code = code
+    @name = name
+    @link = link
+    @price = price
+  end
+end
 
 class CanadaComputersPoller
   attr_reader :notifier
 
-  CODE_BY_MANUFACTURER = {
-    gigabyte: 183101,
-    evga: 183500,
+  MANUFACTURER_BY_CODE = {
+    183101 => 'gigabyte', # $779
+    183500 => 'evga', # $789
+    183636 => 'asus1', # $749
+    183638 => 'asus2', # $799
+    183208 => 'msi', # $819
   }
 
-  MANUFACTURER_BY_CODE = CODE_BY_MANUFACTURER.invert
+  CODE_BY_MANUFACTURER = MANUFACTURER_BY_CODE.invert
 
   def initialize
     @notifier = SlackNotifier.new
@@ -56,7 +64,7 @@ class CanadaComputersPoller
   end
 
   def codes
-    CODE_BY_MANUFACTURER.values
+    MANUFACTURER_BY_CODE.keys
   end
 
   def build_url(code)
