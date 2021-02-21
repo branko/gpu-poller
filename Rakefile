@@ -1,7 +1,13 @@
-task default: %w[poll_stock]
+task default: %w[poll_cc]
 
-task :poll_stock do
+task :poll_cc do
   puts "Running rake task.."
-  ruby "poller.rb"
+  ruby "./pollers/cc_poller.rb"
+  puts "Complete"
+end
+
+task :poll_staples do
+  puts "Running rake task.."
+  ruby "./pollers/staples_poller.rb"
   puts "Complete"
 end

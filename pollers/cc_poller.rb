@@ -1,22 +1,20 @@
 load 'setup.rb'
 
-class CanadaComputersPoller
-  attr_reader :notifier, :manufacturers
-
+class CanadaComputersPoller < BasePoller
   def initialize
-    @notifier = SlackNotifier.new
-    @manufacturers = YAML.load(File.read("manufacturers.yml")).map do |m|
-      Manufacturer.new(*m)
-    end
+    @manufacturer_klass = CanadaComputersManufacturer
+    @prefix = 'cc'
+    super
   end
 
   def poll
-    start!
+    super do
+      check_search!
+    end
+  end
 
-    manufacturers.each(&-> (m) { process_code(m) })
-    check_search!
-
-    finish!
+  def start!
+    notifier.message!("🚨 #{time}: Checking CC via scraping and API!")
   end
 
   private
@@ -51,33 +49,6 @@ class CanadaComputersPoller
     scraper.in_stock_by_scraping? ?
       notify_available!(manufacturer) { |link| "‼️ *#{code}: It's available somewhere!* link: #{link}\n" } :
       Alert.warn('Unavailable by scraping')
-  end
-
-  def start_scraping!
-    notifier.message!("#{'-' * 40}\n⏱ #{time}: Beginning scraping!")
-  end
-
-  def start!
-    # notifier.message!("#{'=' * 40}\n🚨 #{time}: Beginning polling!")
-  end
-
-  def finish!
-    notifier.flush_and_send_queue!
-    # notifier.message!("😴 Finished polling\n#{'=' * 40}")
-  end
-
-  def time
-    Time.now.strftime("%I:%M %p")
-  end
-
-  def get(url)
-    HTTParty.get(url)
-  end
-
-  def notify_available!(manufacturer)
-    slack_link = "<#{manufacturer.link_to_buy}|#{manufacturer.name}>"
-    message = yield(slack_link)
-    notifier.enqueue_messages!(message)
   end
 end
 
