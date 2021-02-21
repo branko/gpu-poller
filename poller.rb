@@ -14,11 +14,25 @@ class CanadaComputersPoller
     start!
 
     manufacturers.each(&-> (m) { process_code(m) })
+    check_search!
 
     finish!
   end
 
   private
+
+  def check_search!
+    start_scraping!
+    Alert.info "Scraping search!"
+
+    CanadaComputersScraper.search_in_stock? do |keywords|
+      notifier.enqueue_messages!("In stock by search for [#{keywords}]")
+    end
+
+    CanadaComputersScraper.search_in_stock?(keywords: '3060ti') do |keywords|
+      notifier.enqueue_messages!("In stock by search for [#{keywords}]")
+    end
+  end
   
   def process_code(manufacturer)
     code = manufacturer.code
@@ -39,13 +53,17 @@ class CanadaComputersPoller
       Alert.warn('Unavailable by scraping')
   end
 
+  def start_scraping!
+    notifier.message!("#{'-' * 40}\n⏱ #{time}: Beginning scraping!")
+  end
+
   def start!
-    notifier.message!("#{'-' * 40}\n🚨 #{time}: Beginning polling!")
+    # notifier.message!("#{'=' * 40}\n🚨 #{time}: Beginning polling!")
   end
 
   def finish!
     notifier.flush_and_send_queue!
-    notifier.message!("😴 Finished polling\n#{'-' * 40}")
+    # notifier.message!("😴 Finished polling\n#{'=' * 40}")
   end
 
   def time

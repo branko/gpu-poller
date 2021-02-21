@@ -1,24 +1,48 @@
 -
   - 183101
-  - Gigabyte
+  - Gigabyte 3070
   - 779
 -
   - 183500
-  - EVGA
+  - EVGA 3070
   - 789
 -
   - 183636
-  - ASUS
+  - ASUS 3070
   - 749
 -
   - 183638
-  - ASUS TUF
+  - ASUS TUF 3070
   - 799
 -
   - 183208
-  - MSI
+  - MSI 3070
   - 819
-# This manufacturer is likely to be in stock
+-
+  - 184760
+  - ASUS 3060ti
+  - 600
+-
+  - 185988
+  - EVGA 3060ti
+  - 609
+-
+  - 184759
+  - ASUS TUF 3060ti
+  - 629
+-
+  - 185407
+  - GIGABYTE 3060ti
+  - 699
+-
+  - 185408
+  - GIGABYTE 3060ti(2)
+  - 679
+-
+  - 185086
+  - MSI 3060ti
+  - 739
+# This is RAM by a manufacturer is likely to be in stock
 # so we use it for testing
 # -
 #   - 139783
