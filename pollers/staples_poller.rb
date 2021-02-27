@@ -11,22 +11,21 @@ class StaplesPoller < BasePoller
     super
   end
 
-  def start!
-    notifier.message! "🚨 #{time}: Checking Staples via API..."
-  end
-
   private
   
   def process_code(manufacturer)
     code = manufacturer.code
     url = manufacturer.url
-    Alert.info "Fetching #{manufacturer.name}"
+    # Alert.info "Fetching #{manufacturer.name}"
 
     response = StaplesResponse.new(post(url, request_body(code)))
 
-    response.stock_available? ?
-      notify_available!(manufacturer) { |link| "‼️ *STAPLES -> It's available locally!* link: #{link}\n" } :
-      Alert.warn('Unavailable by API')
+    if response.stock_available?
+      response.log_available!(notifier)
+      notifier.notify_user!
+
+      notify_available!(manufacturer) { |link| "‼️ *STAPLES =>* link: #{link}\n" }
+    end
   end
 
   def request_body(code)

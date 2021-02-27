@@ -3,6 +3,11 @@ class BaseNotifier
 
   def initialize
     @messages = []
+    @notify_user = false
+  end
+  
+  def notify_user!
+    @notify_user = true
   end
 
   def enqueue_messages!(message)

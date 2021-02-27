@@ -11,3 +11,11 @@ task :poll_staples do
   ruby "./pollers/staples_poller.rb"
   puts "Complete"
 end
+
+task :start do
+  system 'bundle exec whenever --write-crontab'
+end
+
+task :stop do
+  system 'bundle exec whenever --clear-crontab'
+end

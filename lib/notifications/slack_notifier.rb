@@ -10,6 +10,9 @@ class SlackNotifier < BaseNotifier
   def build_message_from_queue
     return nil if @messages.empty?
 
-    @messages.join + "\n<#{SLACK_USER_ID}>"
+    output = @messages.join
+    output += "\n<#{SLACK_USER_ID}>" if @notify_user
+
+    output
   end
 end

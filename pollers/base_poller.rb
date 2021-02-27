@@ -11,31 +11,39 @@ class BasePoller
 
     validate_manufacturers
   end
+
+  def track_start
+    @start_time = Time.now
+  end
   
   def poll(&block)
+    track_start
     start!
 
     manufacturers.each(&-> (m) { process_code(m) })
     yield if block
 
     finish!
-  end
-
-  def start_scraping!
-    notifier.message!("#{'-' * 40}\n⏱ #{time}: Beginning scraping! 🤞")
+  rescue => e
+    Alert.error "Error: #{e.message}"
+    notifier.message! "⚠️⚠️⚠️ Rescued an uncaught error in #poll, message: #{e.message}"
   end
 
   def start!
-    # notifier.message!("#{'=' * 40}\n🚨 #{time}: Beginning polling!")
+    notifier.enqueue_messages! "🚨 => #{self.class} started polling at #{time}"
+  end
+
+  def operation_length
+    (Time.now - @start_time).round(2)
   end
 
   def finish!
     notifier.flush_and_send_queue!
-    # notifier.message!("😴 Finished polling\n#{'=' * 40}")
+    notifier.message!("😴 ===> #{self.class} started at #{time}, complete in #{operation_length}s")
   end
 
   def time
-    Time.now.strftime("%I:%M %p")
+    @started_at_readable ||= Time.now.strftime("%I:%M %p")
   end
 
   def get(url)
